@@ -23,6 +23,7 @@ public class NumeroCromatico extends JFrame implements ActionListener {
 
     public JLabel label1 = new JLabel("Grafo:");
     public JLabel label2 = new JLabel("Matriz de adyacencia:");
+    public JLabel label3 = new JLabel ("Numero cromatico: ");
     
     JScrollPane scrollPane = new JScrollPane();
     JScrollPane scrollPane1 = new JScrollPane();
@@ -36,7 +37,10 @@ public class NumeroCromatico extends JFrame implements ActionListener {
     ArrayList<JLabel> numeros = new ArrayList<JLabel>(); 
     JTextField[][] tabla;
     
-    int cantidadNodos = 0;
+    int[] color;
+    Color [] colores = {Color.BLUE, Color.RED, Color.CYAN, Color.GREEN, Color.MAGENTA, Color.ORANGE, Color.PINK , Color.YELLOW, Color.DARK_GRAY};
+            
+    int cantidadNodos = 0, m;
     
     public static void main(String[] args) {
 
@@ -105,7 +109,7 @@ public class NumeroCromatico extends JFrame implements ActionListener {
                     tempLabel.setBounds(e.getX(), e.getY(), 10, 15);
                     tempLabel.setForeground(Color.BLACK);
                     tempLabel.setOpaque(true);
-                    tempLabel.setBackground(Color.lightGray);
+                    tempLabel.setBackground(Color.WHITE);
                     
                     numeros.add(tempLabel);
 
@@ -177,7 +181,7 @@ public class NumeroCromatico extends JFrame implements ActionListener {
         
     }
     
-    public void dibujarGrafo(){
+    public void dibujarGrafo(int[] color){
         
         JLabel padre, hijo;
         String cadena = ""; 
@@ -188,8 +192,10 @@ public class NumeroCromatico extends JFrame implements ActionListener {
             
             for(int j = 0; j< numeros.size(); j++){
             
-                if(tabla[j][i].getText().equals("1")){
+                System.out.print(tabla[j][i].getText() + ", ");
                 
+                if(tabla[j][i].getText().equals("1")){
+                    
                     hijo = numeros.get(j);
                     
                     int coorY = 0;
@@ -225,11 +231,11 @@ public class NumeroCromatico extends JFrame implements ActionListener {
 
                     ImageIcon imgIcon = new ImageIcon(getClass().getResource(cadena));
 
-                    Image imgEscalada = imgIcon.getImage().getScaledInstance(Math.abs(padre.getX() - hijo.getX()), Math.abs(padre.getY() - hijo.getY()), Image.SCALE_SMOOTH);
+                    Image imgEscalada = imgIcon.getImage().getScaledInstance(Math.abs(padre.getX() - hijo.getX()) + 2, Math.abs(padre.getY() - hijo.getY()) + 2, Image.SCALE_SMOOTH);
                     Icon iconoEscalado = new ImageIcon(imgEscalada);
 
                     img.setIcon(iconoEscalado);
-                    img.setBounds(coorX, coorY, Math.abs(padre.getX() - hijo.getX()), Math.abs(padre.getY() - hijo.getY()));
+                    img.setBounds(coorX, coorY, Math.abs(padre.getX() - hijo.getX()) + 2, Math.abs(padre.getY() - hijo.getY()) + 2);
                     
                     cadena = "";
                     
@@ -238,19 +244,160 @@ public class NumeroCromatico extends JFrame implements ActionListener {
                 }
 
             }
+
+            System.out.println(" ");
             
         }
+        
+        for(int i = 0; i<cantidadNodos; i++){
+                
+            numeros.get(i).setOpaque(true);
+            numeros.get(i).setBackground(colores[color[i] - 1]);
+
+        }
+        
+        label3.setText("Numero cromatico: " + (m+1));
         
         scrollPane1.repaint();
                 
     }
     
+    public void imprimirSolucion(int[] color){
+    
+        System.out.println("Solution Exists: Following are the assigned colors ");
+    
+        this.color = color;
+        
+        for (int i = 0; i < cantidadNodos; i++)
+      
+            System.out.print("  " + color[i]);
+    
+        System.out.println();
+  
+    }
+    
+    public boolean esSeguro(boolean[][] graph, int[] color)  {
+
+    
+        for (int i = 0; i < cantidadNodos; i++){
+      
+            for (int j = i + 1; j < cantidadNodos; j++){
+        
+                if (graph[i][j] && color[j] == color[i]){
+          
+                    return false;
+                    
+                }
+            }
+        }
+        
+        return true;
+        
+    }
+    
+    public boolean colorearGrafo(boolean[][] graph, int m, int i, int[] color){
+
+        if (i == cantidadNodos) {
+
+          if (esSeguro(graph, color)){
+
+            imprimirSolucion(color);
+
+            return true;
+
+          }
+
+          return false;
+
+        }
+
+        for (int j = 1; j <= m; j++){
+
+            color[i] = j;
+
+
+            if (colorearGrafo(graph, m, i + 1, color)){
+
+                return true;
+
+            }
+
+            color[i] = 0;
+        }
+
+        return false;
+  
+    }
+    
     @Override
     public void actionPerformed(ActionEvent e) {
     
-        if(e.getSource() == botonIngresar){
+        if(e.getSource() == botonIngresar && cantidadNodos != 0){
             
-            dibujarGrafo();
+            label3.setBounds(0, 305, 300, 10);
+        
+            scrollPane1.add(label3);
+            
+            boolean[][] graph = new boolean [cantidadNodos][cantidadNodos];
+            m = cantidadNodos;
+            
+            for(int i = 0; i < cantidadNodos; i++){
+                
+                for(int j = 0; j < cantidadNodos; j++){
+                
+                    if(tabla[j][i].getText().equals("1")){
+                    
+                        graph[j][i] = true;
+                        graph[i][j] = true;
+                        
+                    } else if (tabla[j][i].getText().equals("0")){
+                        
+                        graph[j][i] = false;
+                        graph[i][j] = false;
+                        
+                    }
+                    
+                }
+                
+            }
+            
+            for(int i = 0; i < cantidadNodos; i++){
+                
+                for(int j = 0; j < cantidadNodos; j++){
+                
+                    System.out.print(graph[j][i]+ ", ");
+                    
+                }
+                
+                System.out.println(" ");
+                
+            }
+            
+            color = new int[cantidadNodos];
+            
+            while(true){
+                
+                if(colorearGrafo(graph, m, 0, new int[cantidadNodos])){
+                    
+                    m--;
+                    
+                } else {
+                    
+                    System.out.println("Solution does not exist");
+                    break;
+                    
+                }
+                
+            }
+            
+            dibujarGrafo(color);
+            
+        } else if(e.getSource() == botonReiniciar){
+        
+            scrollPane1.removeAll();
+            scrollPane1.repaint();
+            cantidadNodos = 0;
+            numeros = new ArrayList<JLabel>(); 
             
         }
         
